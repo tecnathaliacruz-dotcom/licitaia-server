@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LicitaIA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f7fb;--panel:#fff;--ink:#14172b;--muted:#5d6380;--line:#e3e6ef;
+  --brand:#3b4cca;--brand-ink:#fff;--brand-soft:#eceefe;
+  --ok:#14804a;--ok-soft:#e3f5ea;--warn:#a86400;--warn-soft:#fff2db;--bad:#c0322b;--bad-soft:#fde7e5;
+  --shadow:0 1px 2px rgba(20,23,43,.06),0 4px 16px rgba(20,23,43,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#0f1220;--panel:#171b2e;--ink:#eceefa;--muted:#a1a7c4;--line:#2a2f48;
+  --brand:#7d8cff;--brand-ink:#0f1220;--brand-soft:#232a52;
+  --ok:#4fd18b;--ok-soft:#163626;--warn:#f1b24a;--warn-soft:#3a2c12;--bad:#ff7a70;--bad-soft:#3d1a18;--shadow:none}}
+:root[data-theme=dark]{
+  --bg:#0f1220;--panel:#171b2e;--ink:#eceefa;--muted:#a1a7c4;--line:#2a2f48;
+  --brand:#7d8cff;--brand-ink:#0f1220;--brand-soft:#232a52;
+  --ok:#4fd18b;--ok-soft:#163626;--warn:#f1b24a;--warn-soft:#3a2c12;--bad:#ff7a70;--bad-soft:#3d1a18;--shadow:none}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top{max-width:1180px;margin:auto;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{font-weight:700;font-size:19px;letter-spacing:-.3px}.logo b{color:var(--brand)}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;color:var(--muted);padding:8px 12px;border-radius:8px;font:inherit;font-weight:500;cursor:pointer}
+nav button.on{background:var(--brand-soft);color:var(--brand)}
+.status{margin-left:auto;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+main{max-width:1180px;margin:auto;padding:20px 16px 60px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+textarea{width:100%;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:-1px}
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+h2{font-size:18px;margin:0 0 4px}h3{font-size:15px;margin:18px 0 8px}
+.muted{color:var(--muted)}.small{font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi .v{font-size:22px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.lic{display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.lic:hover{border-color:var(--brand)}
+.score{width:48px;height:48px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:17px}
+.s-hi{background:var(--ok-soft);color:var(--ok)}.s-mid{background:var(--warn-soft);color:var(--warn)}.s-lo{background:var(--bad-soft);color:var(--bad)}
+.lic .t{font-weight:600;line-height:1.3}
+.lic .m{font-size:12.5px;color:var(--muted);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-n{background:var(--brand-soft);color:var(--brand)}
+.right{text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.star{background:none;border:0;font-size:18px;cursor:pointer;color:var(--muted);padding:0}
+.star.on{color:#e8a400}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+.err{background:var(--bad-soft);color:var(--bad);padding:10px 12px;border-radius:8px;margin-top:10px}
+.hidden{display:none!important}
+/* drawer */
+.ov{position:fixed;inset:0;background:rgba(10,12,25,.45);z-index:20;display:flex;justify-content:flex-end}
+.drawer{background:var(--panel);width:min(760px,100%);height:100%;overflow:auto;padding:20px}
+.drawer .head{display:flex;justify-content:space-between;gap:10px;align-items:start}
+.tabs2{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0}
+.tabs2 button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 10px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+.tabs2 button.on{color:var(--brand);border-color:var(--brand)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv{font-size:13.5px}.kv span{display:block;font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--brand)}
+.calc input{width:100%}
+.res{background:var(--brand-soft);border-radius:10px;padding:12px;margin-top:12px}
+.res .big{font-size:22px;font-weight:700}
+pre.prop{white-space:pre-wrap;font:14px/1.55 Inter,system-ui,sans-serif;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;max-height:55vh;overflow:auto}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:40;font-size:14px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media(max-width:640px){header{position:static}.row>label{flex:1 1 100%}.row>label select,.row>label input{width:100%}.grid2{grid-template-columns:1fr}.lic{grid-template-columns:44px 1fr}.lic .right{grid-column:2;align-items:flex-start;text-align:left;flex-direction:row}.score{width:40px;height:40px;font-size:15px}.status{margin-left:0}}
+</style>
+</head>
+<body>
+<header><div class="top">
+  <div class="logo">Licita<b>IA</b></div>
+  <nav id="nav">
+    <button data-v="buscar" class="on">Buscar</button>
+    <button data-v="desiertas">Desiertas</button>
+    <button data-v="guardadas">Guardadas <span id="nGuard"></span></button>
+    <button data-v="ordenes">Órdenes de compra</button>
+    <button data-v="perfil">Perfil y alertas</button>
+  </nav>
+  <div class="status"><i class="dot" id="dot"></i><span id="stxt">Conectando…</span></div>
+</div></header>
+
+<main>
+  <!-- BUSCAR -->
+  <section id="v-buscar">
+    <div class="card">
+      <div class="row">
+        <label style="flex:1 1 260px">Palabras clave (separadas por coma)
+          <input id="q" placeholder="coffee break, catering, pantalla led, computadores"></label>
+        <label>Estado<select id="estado">
+          <option value="activas">Activas</option><option value="publicada">Publicadas</option>
+          <option value="cerrada">Cerradas</option><option value="adjudicada">Adjudicadas</option>
+          <option value="desierta">Desiertas</option><option value="todos">Todos</option></select></label>
+        <label>Fecha (opcional)<input id="fecha" type="date"></label>
+        <label>Detalle de<select id="ndet"><option>15</option><option selected>25</option><option>40</option><option>60</option></select></label>
+        <button class="btn pri" id="bBuscar">Buscar</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label>Región<select id="fReg"><option value="">Todas</option></select></label>
+        <label>Semáforo<select id="fSem"><option value="">Todos</option><option value="v">Verde (+7 días)</option><option value="a">Amarillo (3–7)</option><option value="r">Rojo (&lt;3)</option></select></label>
+        <label>Puntaje mínimo<input id="fMin" type="number" min="0" max="100" value="0" style="width:90px"></label>
+        <label>Ordenar<select id="fOrd"><option value="score">Puntaje</option><option value="cierre">Cierre más próximo</option><option value="monto">Mayor monto</option></select></label>
+        <span style="flex:1"></span>
+        <button class="btn" id="bCsv">Exportar CSV</button>
+      </div>
+      <div class="small muted" style="margin-top:8px">Fecha vacía = hoy. El detalle (monto, organismo, región) se trae para las primeras licitaciones que coinciden; el resto se carga al abrirla.</div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div id="msg"></div>
+    <div class="list" id="lista"></div>
+  </section>
+
+  <!-- DESIERTAS -->
+  <section id="v-desiertas" class="hidden">
+    <div class="card">
+      <h2>Licitaciones desiertas</h2>
+      <p class="muted" style="margin:0 0 10px">Quedaron sin oferentes o sin ofertas válidas. Suelen volver a publicarse o pasar a trato directo: contacta al organismo y prepárate antes que el resto.</p>
+      <div class="row">
+        <label style="flex:1 1 260px">Palabras clave<input id="qD" placeholder="déjalo vacío para ver todas"></label>
+        <label>Fecha<input id="fechaD" type="date"></label>
+        <button class="btn pri" id="bDes">Buscar desiertas</button>
+      </div>
+    </div>
+    <div id="msgD"></div>
+    <div class="list" id="listaD"></div>
+  </section>
+
+  <!-- GUARDADAS -->
+  <section id="v-guardadas" class="hidden">
+    <div class="card"><h2>Guardadas</h2><p class="muted" style="margin:0">Las que marcaste con estrella, con tus notas, cálculo y estado de postulación.</p></div>
+    <div class="list" id="listaG"></div>
+  </section>
+
+  <!-- ÓRDENES -->
+  <section id="v-ordenes" class="hidden">
+    <div class="card">
+      <h2>Órdenes de compra</h2>
+      <p class="muted" style="margin:0 0 10px">Mira qué compran los organismos y a quién. Útil para conocer precios reales y a la competencia.</p>
+      <div class="row">
+        <label>Fecha<input id="fechaO" type="date"></label>
+        <label>Código organismo<input id="orgO" placeholder="ej. 694" style="width:120px"></label>
+        <label>Código proveedor<input id="provO" placeholder="ej. 17793" style="width:120px"></label>
+        <label style="flex:1 1 180px">Filtrar por texto<input id="qO" placeholder="coffee, led…"></label>
+        <button class="btn pri" id="bOc">Buscar</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label>¿No sabes el código de un proveedor? Búscalo por RUT<input id="rutO" placeholder="76.123.456-7"></label>
+        <button class="btn" id="bRut">Buscar RUT</button><span id="rutRes" class="small"></span>
+      </div>
+    </div>
+    <div id="msgO"></div>
+    <div class="card hidden" id="ocWrap" style="margin-top:12px;padding:0;overflow:auto"><table id="ocTab"></table></div>
+  </section>
+
+  <!-- PERFIL -->
+  <section id="v-perfil" class="hidden">
+    <div class="card">
+      <h2>Perfil de empresa</h2>
+      <p class="muted" style="margin:0 0 12px">Se usa para el puntaje y para redactar propuestas. Se guarda solo en este navegador.</p>
+      <div class="row" style="margin-bottom:10px">
+        <label>Perfil activo<select id="pSel"></select></label>
+        <button class="btn sm" id="pNew">+ Nuevo perfil</button>
+      </div>
+      <div class="grid2">
+        <label>Nombre empresa<input id="pNombre"></label>
+        <label>RUT<input id="pRut"></label>
+        <label>Rubro<input id="pRubro" placeholder="Eventos corporativos, coffee break, pantallas LED"></label>
+        <label>Región principal<select id="pReg"></select></label>
+        <label style="grid-column:1/-1">Palabras clave del rubro (para alertas y puntaje)<input id="pKw" placeholder="coffee break, catering, evento, pantalla led"></label>
+        <label style="grid-column:1/-1">Experiencia y diferenciadores<textarea id="pExp" rows="3"></textarea></label>
+        <label style="grid-column:1/-1">Contacto (nombre, teléfono, correo)<input id="pCon"></label>
+        <label>Margen por defecto (%)<input id="pMar" type="number" value="25"></label>
+        <label>Monto ideal máximo (CLP)<input id="pMax" type="number" value="50000000"></label>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" id="pSave">Guardar perfil</button></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Alertas</h2>
+      <p class="muted" style="margin:0 0 10px">Revisa las licitaciones activas con las palabras clave del perfil y te marca las nuevas desde tu última revisión.</p>
+      <button class="btn pri" id="bAlert">Revisar alertas ahora</button>
+      <span class="small muted" id="alertInfo"></span>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Conexión</h2>
+      <div class="row">
+        <label style="flex:1">URL del servidor (déjala vacía si abriste la app desde Railway)<input id="apiUrl" placeholder="https://licitaia-server-production.up.railway.app"></label>
+        <button class="btn" id="apiSave">Guardar</button>
+        <button class="btn" id="theme">Tema claro/oscuro</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="ov hidden" id="ov"><div class="drawer" id="drawer"></div></div>
+
+<script>
+/* ---------------- utilidades ---------------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem('licitaia.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem('licitaia.'+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clp=n=>n==null||isNaN(n)?'—':'$'+Math.round(n).toLocaleString('es-CL');
+const sinT=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.append(d);setTimeout(()=>d.remove(),2600)}
+const REGIONES=['Región de Arica y Parinacota','Región de Tarapacá','Región de Antofagasta','Región de Atacama','Región de Coquimbo','Región de Valparaíso','Región Metropolitana de Santiago',"Región del Libertador General Bernardo O'Higgins",'Región del Maule','Región de Ñuble','Región del Biobío','Región de La Araucanía','Región de Los Ríos','Región de Los Lagos','Región Aisén del General Carlos Ibáñez del Campo','Región de Magallanes y de la Antártica'];
+const ESTADO_TXT={5:'Publicada',6:'Cerrada',7:'Desierta',8:'Adjudicada',18:'Revocada',19:'Suspendida'};
+const TIPOS={L1:'Menor a 100 UTM',LE:'100 a 1.000 UTM',LP:'1.000 a 2.000 UTM',LQ:'2.000 a 5.000 UTM',LR:'Mayor a 5.000 UTM',E2:'Menor a 100 UTM (privada)',CO:'100 a 1.000 UTM (privada)',B2:'1.000 a 2.000 UTM (privada)',H2:'2.000 a 5.000 UTM (privada)',I2:'Mayor a 5.000 UTM (privada)',LS:'Servicios personales especializados'};
+
+function apiBase(){const u=store.get('api','');if(u)return u.replace(/\/$/,'');return location.protocol.startsWith('http')?location.origin:''}
+async function api(path,opts){
+  const base=apiBase(); if(!base) throw new Error('Configura la URL del servidor en Perfil y alertas → Conexión');
+  const r=await fetch(base+path,opts); let j; try{j=await r.json()}catch(e){throw new Error('El servidor respondió algo inesperado ('+r.status+')')}
+  if(!r.ok&&!j.texto){const e=new Error(j.mensaje||j.error||('Error '+r.status));e.code=j.error;throw e}
+  if(j&&j.Codigo&&j.Mensaje&&!j.Listado) throw new Error('Mercado Público: '+j.Mensaje);
+  if(j&&j.error&&!j.Listado) throw new Error(j.error);
+  return j;
+}
+
+/* ---------------- perfiles ---------------- */
+const PERFIL_BASE={nombre:'',rut:'',rubro:'',region:'Región Metropolitana de Santiago',kw:'',exp:'',con:'',margen:25,max:50000000};
+let perfiles=store.get('perfiles',null);
+if(!perfiles){perfiles={'LED VIP':{...PERFIL_BASE,nombre:'LED VIP',rubro:'Eventos corporativos: coffee break y pantallas LED',kw:'coffee break, coffee, catering, cóctel, coctel, evento, pantalla led, pantallas, producción de eventos'},
+  'People on Technology':{...PERFIL_BASE,nombre:'People on Technology',rubro:'Tecnología',kw:'computador, notebook, software, tecnología, soporte informático, equipos computacionales'}};store.set('perfiles',perfiles)}
+let pAct=store.get('perfilActivo',Object.keys(perfiles)[0]);
+const perfil=()=>perfiles[pAct]||PERFIL_BASE;
+const kwPerfil=()=>perfil().kw.split(',').map(s=>s.trim()).filter(Boolean);
+
+function pintarPerfil(){
+  $('#pSel').innerHTML=Object.keys(perfiles).map(k=>`<option ${k===pAct?'selected':''}>${esc(k)}</option>`).join('');
+  const p=perfil();
+  $('#pNombre').value=p.nombre;$('#pRut').value=p.rut;$('#pRubro').value=p.rubro;$('#pReg').value=p.region;
+  $('#pKw').value=p.kw;$('#pExp').value=p.exp;$('#pCon').value=p.con;$('#pMar').value=p.margen;$('#pMax').value=p.max;
+  if(!$('#q').value) $('#q').value=p.kw;
+}
+$('#pReg').innerHTML=REGIONES.map(r=>`<option>${esc(r)}</option>`).join('');
+$('#fReg').innerHTML='<option value="">Todas</option>'+REGIONES.map(r=>`<option>${esc(r)}</option>`).join('');
+$('#pSel').onchange=e=>{pAct=e.target.value;store.set('perfilActivo',pAct);$('#q').value='';pintarPerfil();render()};
+$('#pNew').onclick=()=>{const n=prompt('Nombre del nuevo perfil');if(!n)return;perfiles[n]={...PERFIL_BASE,nombre:n};pAct=n;store.set('perfiles',perfiles);store.set('perfilActivo',n);pintarPerfil()};
+$('#pSave').onclick=()=>{perfiles[pAct]={nombre:$('#pNombre').value,rut:$('#pRut').value,rubro:$('#pRubro').value,region:$('#pReg').value,kw:$('#pKw').value,exp:$('#pExp').value,con:$('#pCon').value,margen:+$('#pMar').value||0,max:+$('#pMax').value||0};store.set('perfiles',perfiles);toast('Perfil guardado');render()};
+$('#apiUrl').value=store.get('api','');
+$('#apiSave').onclick=()=>{store.set('api',$('#apiUrl').value.trim());toast('Guardado');ping()};
+$('#theme').onclick=()=>{const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;store.set('theme',t)};
+if(store.get('theme',''))document.documentElement.dataset.theme=store.get('theme','');
+
+/* ---------------- puntaje y semáforo ---------------- */
+function fechaCierre(l){return (l.detalle&&l.detalle.Fechas&&l.detalle.Fechas.FechaCierre)||l.FechaCierre||null}
+function diasCierre(l){const f=fechaCierre(l);if(!f)return null;return (new Date(f)-new Date())/864e5}
+function semaforo(l){const d=diasCierre(l);if(d==null)return{c:'p-n',t:'Sin fecha',k:''};
+  if(d<0)return{c:'p-bad',t:'Cerrada',k:'r'};
+  const txt=d<1?'Cierra hoy':`${Math.floor(d)} día${Math.floor(d)===1?'':'s'}`;
+  return d<3?{c:'p-bad',t:txt,k:'r'}:d<=7?{c:'p-warn',t:txt,k:'a'}:{c:'p-ok',t:txt,k:'v'}}
+function puntaje(l){
+  const det=l.detalle||{}, p=perfil(), kws=kwPerfil().map(sinT);
+  const texto=sinT((l.Nombre||'')+' '+(det.Descripcion||'')+' '+((det.Items&&det.Items.Listado)||[]).map(i=>i.NombreProducto+' '+i.Descripcion).join(' '));
+  const hits=kws.filter(k=>texto.includes(k));
+  const f={};
+  f['Rubro']=Math.min(30,hits.length*12);
+  const d=diasCierre(l); f['Plazo']=d==null?10:d<0?0:d<1?2:d<3?6:d<5?12:d<10?20:25;
+  const m=det.MontoEstimado; const max=p.max||50000000;
+  f['Monto']=!m?8:m<500000?8:m<=max?20:m<=max*4?12:5;
+  const tipo=det.Tipo||(String(l.CodigoExterno||'').split('-').pop().replace(/\d+/g,''));
+  f['Tipo']={L1:15,E2:15,LE:12,CO:12,LP:8,B2:8,LQ:5,H2:5,LR:3,I2:3}[tipo]??8;
+  const reg=det.Comprador&&det.Comprador.RegionUnidad;
+  f['Región']=!reg?5:sinT(reg).includes(sinT(p.region).replace('region ','').slice(0,10))||sinT(reg)===sinT(p.region)?10:3;
+  const total=Math.max(0,Math.min(100,Object.values(f).reduce((a,b)=>a+b,0)));
+  return{total,f,hits};
+}
+const sClass=s=>s>=65?'s-hi':s>=45?'s-mid':'s-lo';
+
+/* ---------------- estado ---------------- */
+let resultados=[]; let guardadas=store.get('guardadas',{}); let detCache={};
+function nGuard(){const n=Object.keys(guardadas).length;$('#nGuard').textContent=n?`(${n})`:''}
+function toggleGuardar(l){const c=l.CodigoExterno;if(guardadas[c])delete guardadas[c];else guardadas[c]={lic:l,estado:'Evaluando',notas:'',calc:null,guardada:Date.now()};store.set('guardadas',guardadas);nGuard();render();renderG()}
+
+/* ---------------- vistas ---------------- */
+$$('#nav button').forEach(b=>b.onclick=()=>{$$('#nav button').forEach(x=>x.classList.toggle('on',x===b));$$('main>section').forEach(s=>s.classList.toggle('hidden',s.id!=='v-'+b.dataset.v));if(b.dataset.v==='guardadas')renderG()});
+
+function itemHTML(l){
+  const det=l.detalle||{}, sc=puntaje(l), sem=semaforo(l), g=!!guardadas[l.CodigoExterno];
+  return `<div class="lic" data-c="${esc(l.CodigoExterno)}">
+    <div class="score ${sClass(sc.total)}" title="Puntaje de oportunidad">${sc.total}</div>
+    <div><div class="t">${esc(l.Nombre)}</div>
+      <div class="m"><span>${esc(l.CodigoExterno)}</span>${det.Comprador?`<span>${esc(det.Comprador.NombreOrganismo)}</span>`:''}${det.Comprador&&det.Comprador.RegionUnidad?`<span>${esc(det.Comprador.RegionUnidad.replace('Región ',''))}</span>`:''}
+      ${sc.hits.length?`<span class="pill p-n">${esc(sc.hits.slice(0,3).join(' · '))}</span>`:''}${l.CodigoEstado==7?'<span class="pill p-warn">Desierta</span>':''}</div></div>
+    <div class="right"><span class="pill ${sem.c}">● ${esc(sem.t)}</span><span class="small">${det.MontoEstimado?clp(det.MontoEstimado):'<span class="muted">Monto no informado</span>'}</span>
+      <button class="star ${g?'on':''}" data-star="${esc(l.CodigoExterno)}" title="Guardar">${g?'★':'☆'}</button></div></div>`;
+}
+function filtrados(){
+  const reg=$('#fReg').value, sem=$('#fSem').value, min=+$('#fMin').value||0, ord=$('#fOrd').value;
+  let r=resultados.filter(l=>(!reg||(l.detalle&&l.detalle.Comprador&&l.detalle.Comprador.RegionUnidad===reg))&&(!sem||semaforo(l).k===sem)&&puntaje(l).total>=min);
+  const k={score:l=>-puntaje(l).total,cierre:l=>{const d=diasCierre(l);return d==null||d<0?1e9:d},monto:l=>-((l.detalle&&l.detalle.MontoEstimado)||0)}[ord];
+  return r.sort((a,b)=>k(a)-k(b));
+}
+function bindLista(el,arr){
+  el.querySelectorAll('.lic').forEach(n=>n.onclick=e=>{const c=n.dataset.c;if(e.target.dataset.star){const l=arr.find(x=>x.CodigoExterno===c);toggleGuardar(l);return}abrir(c,arr)});
+}
+function render(){
+  const r=filtrados();
+  const verdes=r.filter(l=>semaforo(l).k==='v').length, altos=r.filter(l=>puntaje(l).total>=65).length;
+  const monto=r.reduce((a,l)=>a+((l.detalle&&l.detalle.MontoEstimado)||0),0);
+  $('#kpis').innerHTML=resultados.length?`<div class="kpi"><div class="v">${r.length}</div><div class="l">Licitaciones mostradas</div></div><div class="kpi"><div class="v">${altos}</div><div class="l">Puntaje alto (65+)</div></div><div class="kpi"><div class="v">${verdes}</div><div class="l">Con más de 7 días</div></div><div class="kpi"><div class="v">${clp(monto)}</div><div class="l">Monto estimado con detalle</div></div>`:'';
+  $('#lista').innerHTML=r.length?r.map(itemHTML).join(''):(resultados.length?'<div class="empty">Ningún resultado con estos filtros.</div>':'');
+  bindLista($('#lista'),resultados);
+}
+['#fReg','#fSem','#fMin','#fOrd'].forEach(s=>$(s).oninput=render);
+
+async function buscar(q,estado,fecha,ndet,msgEl){
+  msgEl.innerHTML='<div class="card"><span class="spin"></span> Consultando Mercado Público… el detalle puede tardar un poco la primera vez.</div>';
+  const p=new URLSearchParams({q,estado,detalle:ndet}); if(fecha)p.set('fecha',fecha);
+  try{const j=await api('/api/buscar?'+p);msgEl.innerHTML=j.Listado.length?`<div class="small muted">${j.total} coincidencias de ${j.total_api??'?'} licitaciones (${esc(j.estado)}). Detalle cargado para ${j.con_detalle}.</div>`:'<div class="empty">No hay licitaciones con esas palabras. Prueba con otras o deja el campo vacío.</div>';
+    j.Listado.forEach(l=>{if(l.detalle)detCache[l.CodigoExterno]=l.detalle});return j.Listado}
+  catch(e){msgEl.innerHTML=`<div class="err">${esc(e.message)}</div>`;return[]}
+}
+$('#bBuscar').onclick=async()=>{const b=$('#bBuscar');b.disabled=true;resultados=await buscar($('#q').value,$('#estado').value,$('#fecha').value,$('#ndet').value,$('#msg'));render();b.disabled=false};
+let desiertas=[];
+$('#bDes').onclick=async()=>{const b=$('#bDes');b.disabled=true;desiertas=await buscar($('#qD').value,'desierta',$('#fechaD').value,20,$('#msgD'));
+  desiertas.sort((a,b)=>puntaje(b).total-puntaje(a).total);$('#listaD').innerHTML=desiertas.map(itemHTML).join('');bindLista($('#listaD'),desiertas);b.disabled=false};
+
+function renderG(){
+  const arr=Object.values(guardadas).sort((a,b)=>(diasCierre(a.lic)??1e9)-(diasCierre(b.lic)??1e9));
+  $('#listaG').innerHTML=arr.length?arr.map(g=>itemHTML(g.lic).replace('<div class="right">',`<div class="right"><span class="pill p-n">${esc(g.estado)}</span>`)).join(''):'<div class="empty">Aún no guardas ninguna. Usa la ☆ en los resultados.</div>';
+  bindLista($('#listaG'),arr.map(g=>g.lic));
+}
+
+/* ---------------- CSV ---------------- */
+$('#bCsv').onclick=()=>{
+  const r=filtrados(); if(!r.length){toast('No hay resultados para exportar');return}
+  const head=['Código','Nombre','Puntaje','Semáforo','Fecha cierre','Organismo','Región','Tipo','Monto estimado','Coincidencias','Link'];
+  const rows=r.map(l=>{const d=l.detalle||{},s=puntaje(l);return[l.CodigoExterno,l.Nombre,s.total,semaforo(l).t,fechaCierre(l)||'',d.Comprador?d.Comprador.NombreOrganismo:'',d.Comprador?d.Comprador.RegionUnidad:'',d.Tipo||'',d.MontoEstimado||'',s.hits.join(' / '),link(l.CodigoExterno)]});
+  const csv='﻿'+[head,...rows].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`licitaia_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+};
+const link=c=>'https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion='+encodeURIComponent(c);
+
+/* ---------------- detalle (drawer) ---------------- */
+let actual=null;
+$('#ov').onclick=e=>{if(e.target.id==='ov')cerrar()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrar()});
+function cerrar(){$('#ov').classList.add('hidden');actual=null}
+async function abrir(codigo,arr){
+  let l=arr.find(x=>x.CodigoExterno===codigo)||(guardadas[codigo]&&guardadas[codigo].lic);
+  $('#ov').classList.remove('hidden');
+  if(!l.detalle){$('#drawer').innerHTML='<span class="spin"></span> Cargando detalle…';
+    try{l.detalle=detCache[codigo]||await api('/api/detalle/'+encodeURIComponent(codigo));detCache[codigo]=l.detalle}catch(e){$('#drawer').innerHTML=`<div class="err">${esc(e.message)}</div>`;return}}
+  actual=l; if(guardadas[codigo]){guardadas[codigo].lic=l;store.set('guardadas',guardadas)}
+  pintarDrawer('resumen'); render();
+}
+function pintarDrawer(tab){
+  const l=actual, d=l.detalle||{}, c=d.Comprador||{}, F=d.Fechas||{}, sc=puntaje(l), sem=semaforo(l), g=guardadas[l.CodigoExterno];
+  const items=(d.Items&&d.Items.Listado)||[];
+  let body='';
+  if(tab==='resumen'){
+    body=`<div class="grid2">
+      <div class="kv"><span>Organismo</span>${esc(c.NombreOrganismo||'—')}</div>
+      <div class="kv"><span>Unidad / Región</span>${esc(c.NombreUnidad||'')} ${c.RegionUnidad?'· '+esc(c.RegionUnidad):''}</div>
+      <div class="kv"><span>Tipo</span>${esc(d.Tipo||'—')} ${TIPOS[d.Tipo]?'· '+TIPOS[d.Tipo]:''}</div>
+      <div class="kv"><span>Monto estimado</span>${d.MontoEstimado?clp(d.MontoEstimado)+' '+esc(d.Moneda||''):'No informado'}</div>
+      <div class="kv"><span>Publicación</span>${esc((F.FechaPublicacion||'').replace('T',' ').slice(0,16)||'—')}</div>
+      <div class="kv"><span>Cierre</span>${esc((F.FechaCierre||'').replace('T',' ').slice(0,16)||'—')} <span class="pill ${sem.c}" style="display:inline-flex">● ${esc(sem.t)}</span></div>
+      <div class="kv"><span>Preguntas hasta</span>${esc((F.FechaFinal||'').replace('T',' ').slice(0,16)||'—')}</div>
+      <div class="kv"><span>Adjudicación estimada</span>${esc((F.FechaEstimadaAdjudicacion||F.FechaAdjudicacion||'').slice(0,10)||'—')}</div>
+      <div class="kv"><span>Contacto</span>${esc(d.NombreResponsableContrato||'—')} ${d.EmailResponsableContrato?'· '+esc(d.EmailResponsableContrato):''}</div>
+      <div class="kv"><span>Estado</span>${esc(d.Estado||ESTADO_TXT[l.CodigoEstado]||'—')}</div></div>
+      <h3>Puntaje ${sc.total}/100</h3>
+      ${Object.entries(sc.f).map(([k,v])=>{const mx={Rubro:30,Plazo:25,Monto:20,Tipo:15,'Región':10}[k];return`<div class="row small" style="align-items:center;margin:4px 0"><span style="width:70px">${k}</span><div class="bar" style="flex:1"><i style="width:${v/mx*100}%"></i></div><span style="width:46px;text-align:right">${v}/${mx}</span></div>`}).join('')}
+      ${sc.hits.length?`<div class="small muted">Coincide con: ${esc(sc.hits.join(', '))}</div>`:'<div class="small muted">No coincide con las palabras clave del perfil activo.</div>'}
+      <h3>Descripción</h3><div style="white-space:pre-wrap;font-size:14px">${esc(d.Descripcion||'—')}</div>
+      <h3>Ítems (${items.length})</h3>${items.length?`<table><tr><th>Producto</th><th>Descripción</th><th class="n">Cant.</th><th>Unidad</th></tr>${items.map(i=>`<tr><td>${esc(i.NombreProducto)}</td><td>${esc(i.Descripcion)}</td><td class="n">${esc(i.Cantidad)}</td><td>${esc(i.UnidadMedida)}</td></tr>`).join('')}</table>`:'<div class="muted">Sin ítems informados.</div>'}
+      ${g?`<h3>Seguimiento</h3><div class="row"><label>Estado<select id="gEst">${['Evaluando','Preguntas enviadas','Preparando oferta','Oferta enviada','Ganada','Perdida','Descartada'].map(x=>`<option ${x===g.estado?'selected':''}>${x}</option>`).join('')}</select></label></div>
+        <label style="margin-top:8px">Notas<textarea id="gNot" rows="3">${esc(g.notas)}</textarea></label>`:''}`;
+  }
+  if(tab==='calc'){
+    const prev=(g&&g.calc)||store.get('calc.'+l.CodigoExterno,null)||{lineas:items.length?items.map(i=>({d:i.NombreProducto||i.Descripcion||'',q:i.Cantidad||1,u:0})):[{d:'',q:1,u:0}],flete:0,otros:0,margen:perfil().margen,garantia:0};
+    body=`<p class="muted small" style="margin-top:0">Ingresa tus costos (neto, sin IVA). Te calcula el precio a ofertar, la utilidad y cuánto te acercas al monto estimado.</p>
+      <div class="calc"><table id="cTab"><tr><th>Ítem</th><th class="n" style="width:80px">Cant.</th><th class="n" style="width:130px">Costo unit.</th><th class="n">Subtotal</th><th></th></tr></table>
+      <button class="btn sm" id="cAdd" style="margin-top:6px">+ Línea</button>
+      <div class="grid2" style="margin-top:12px">
+        <label>Flete / logística (CLP)<input id="cFle" type="number" value="${prev.flete}"></label>
+        <label>Otros costos: personal, permisos (CLP)<input id="cOtr" type="number" value="${prev.otros}"></label>
+        <label>Garantía / costo financiero (%)<input id="cGar" type="number" step="0.1" value="${prev.garantia}"></label>
+        <label>Margen deseado (%)<input id="cMar" type="number" step="0.5" value="${prev.margen}"></label></div>
+      <div class="res" id="cRes"></div></div>`;
+    setTimeout(()=>calcInit(prev),0);
+  }
+  if(tab==='prop'){
+    body=`<p class="muted small" style="margin-top:0">Usa el perfil <b>${esc(pAct)}</b> y tu cálculo económico. Revisa siempre las bases antes de enviar.</p>
+      <label>Instrucciones extra (opcional)<textarea id="pIns" rows="2" placeholder="Ej.: destacar que tenemos stock inmediato y entrega en 48 h"></textarea></label>
+      <div class="row" style="margin-top:10px"><button class="btn pri" id="pGen">Redactar con IA</button><button class="btn" id="pCopy">Copiar prompt para Claude</button></div>
+      <div id="pOut" style="margin-top:12px">${store.get('prop.'+l.CodigoExterno,'')?`<pre class="prop">${esc(store.get('prop.'+l.CodigoExterno,''))}</pre>${propBtns()}`:''}</div>`;
+  }
+  $('#drawer').innerHTML=`<div class="head"><div><div class="small muted">${esc(l.CodigoExterno)}</div><h2>${esc(l.Nombre)}</h2></div>
+    <div class="row"><button class="btn sm" id="dStar">${g?'★ Guardada':'☆ Guardar'}</button><a class="btn sm" href="${link(l.CodigoExterno)}" target="_blank" rel="noopener">Ver en Mercado Público</a><button class="btn sm" id="dX">✕</button></div></div>
+    <div class="tabs2">${[['resumen','Resumen'],['calc','Calculadora de margen'],['prop','Propuesta']].map(([k,t])=>`<button data-t="${k}" class="${k===tab?'on':''}">${t}</button>`).join('')}</div>${body}`;
+  $('#dX').onclick=cerrar; $('#dStar').onclick=()=>{toggleGuardar(l);pintarDrawer(tab)};
+  $$('.tabs2 button').forEach(b=>b.onclick=()=>pintarDrawer(b.dataset.t));
+  if($('#gEst')){$('#gEst').onchange=e=>{g.estado=e.target.value;store.set('guardadas',guardadas)};$('#gNot').oninput=e=>{g.notas=e.target.value;store.set('guardadas',guardadas)}}
+  if(tab==='prop')propInit();
+}
+
+/* calculadora */
+let calc=null;
+function calcInit(prev){
+  calc=JSON.parse(JSON.stringify(prev));
+  const pinta=()=>{const t=$('#cTab');t.querySelectorAll('tr.l').forEach(r=>r.remove());
+    calc.lineas.forEach((x,i)=>{const tr=document.createElement('tr');tr.className='l';tr.innerHTML=`<td><input value="${esc(x.d)}" data-i="${i}" data-k="d"></td><td><input type="number" value="${x.q}" data-i="${i}" data-k="q"></td><td><input type="number" value="${x.u}" data-i="${i}" data-k="u"></td><td class="n" id="st${i}">${clp(x.q*x.u)}</td><td><button class="btn sm" data-del="${i}">✕</button></td>`;t.append(tr)});
+    t.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{const x=calc.lineas[inp.dataset.i];x[inp.dataset.k]=inp.dataset.k==='d'?inp.value:+inp.value||0;$('#st'+inp.dataset.i).textContent=clp(x.q*x.u);calcular()});
+    t.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{calc.lineas.splice(+b.dataset.del,1);pinta();calcular()});};
+  $('#cAdd').onclick=()=>{calc.lineas.push({d:'',q:1,u:0});pinta()};
+  [['#cFle','flete'],['#cOtr','otros'],['#cGar','garantia'],['#cMar','margen']].forEach(([s,k])=>$(s).oninput=e=>{calc[k]=+e.target.value||0;calcular()});
+  pinta();calcular();
+}
+function calcular(){
+  const l=actual, d=l.detalle||{};
+  const prod=calc.lineas.reduce((a,x)=>a+x.q*x.u,0), costo=prod+calc.flete+calc.otros, costoTot=costo*(1+calc.garantia/100);
+  const neto=calc.margen>=100?NaN:costoTot/(1-calc.margen/100), iva=neto*.19, total=neto+iva, util=neto-costoTot;
+  calc.res={costo:costoTot,neto,iva,total,util};
+  const m=d.MontoEstimado; let vs='';
+  if(m){const pct=neto/m*100;vs=`<div style="margin-top:6px">Tu oferta neta es el <b>${pct.toFixed(0)}%</b> del monto estimado (${clp(m)}). ${pct>100?'<span class="pill p-bad">Sobre el presupuesto</span>':pct>90?'<span class="pill p-warn">Muy justo</span>':'<span class="pill p-ok">Competitiva</span>'}</div>`;
+    const maxMar=(1-costoTot/m)*100; vs+=`<div class="small muted">Margen máximo posible sin pasarte del monto: ${maxMar>0?maxMar.toFixed(1)+'%':'ninguno: tus costos superan el monto'}.</div>`}
+  $('#cRes').innerHTML=`<div class="grid2"><div class="kv"><span>Costo total</span>${clp(costoTot)}</div><div class="kv"><span>Utilidad</span>${clp(util)}</div>
+    <div class="kv"><span>Precio neto a ofertar</span><div class="big">${clp(neto)}</div></div><div class="kv"><span>Total con IVA (19%)</span><div class="big">${clp(total)}</div></div></div>${vs}`;
+  store.set('calc.'+l.CodigoExterno,calc); if(guardadas[l.CodigoExterno]){guardadas[l.CodigoExterno].calc=calc;store.set('guardadas',guardadas)}
+}
+
+/* propuesta */
+function calcTexto(){const c=(guardadas[actual.CodigoExterno]&&guardadas[actual.CodigoExterno].calc)||store.get('calc.'+actual.CodigoExterno,null);
+  if(!c||!c.res)return'(sin cálculo; usar [COMPLETAR])';
+  return c.lineas.map(x=>`${x.d}: ${x.q} x ${clp(x.u)} = ${clp(x.q*x.u)}`).join('\n')+`\nFlete: ${clp(c.flete)} | Otros: ${clp(c.otros)} | Margen: ${c.margen}%\nPrecio neto: ${clp(c.res.neto)} | IVA: ${clp(c.res.iva)} | Total: ${clp(c.res.total)}`}
+function empresaObj(){const p=perfil();return{nombre:p.nombre,rut:p.rut,rubro:p.rubro,experiencia:p.exp,contacto:p.con}}
+function propBtns(){return`<div class="row" style="margin-top:8px"><button class="btn sm" id="pCp">Copiar texto</button><button class="btn sm" id="pDl">Descargar .doc</button></div>`}
+function bindPropBtns(){const t=store.get('prop.'+actual.CodigoExterno,'');if(!$('#pCp'))return;
+  $('#pCp').onclick=()=>navigator.clipboard.writeText(t).then(()=>toast('Copiado'));
+  $('#pDl').onclick=()=>{const html=`<html><head><meta charset="utf-8"></head><body style="font-family:Calibri,Arial;font-size:11pt">${esc(t).replace(/\n/g,'<br>')}</body></html>`;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'application/msword'}));a.download=`Propuesta_${actual.CodigoExterno}.doc`;a.click()}}
+function promptTexto(){const l=actual,d=l.detalle||{},c=d.Comprador||{},e=empresaObj();
+  const items=((d.Items&&d.Items.Listado)||[]).slice(0,40).map(i=>`- ${i.NombreProducto}: ${i.Descripcion} (${i.Cantidad} ${i.UnidadMedida||''})`).join('\n');
+  return `Eres experto en licitaciones públicas de Chile (Mercado Público, Ley 19.886). Redacta una propuesta técnica y económica en español de Chile.\n\nLICITACIÓN ${l.CodigoExterno}: ${l.Nombre}\nOrganismo: ${c.NombreOrganismo||''} (${c.RegionUnidad||''})\nTipo: ${d.Tipo||''} | Monto estimado: ${d.MontoEstimado||'no informado'} | Cierre: ${(d.Fechas||{}).FechaCierre||''}\nDescripción: ${(d.Descripcion||'').slice(0,3000)}\nÍtems:\n${items}\n\nEMPRESA: ${e.nombre} (RUT ${e.rut})\nRubro: ${e.rubro}\nExperiencia: ${e.experiencia}\nContacto: ${e.contacto}\n\nCÁLCULO ECONÓMICO:\n${calcTexto()}\n\nInstrucciones extra: ${($('#pIns')&&$('#pIns').value)||'ninguna'}\n\nEstructura: 1) Carta de presentación 2) Comprensión del requerimiento 3) Propuesta técnica 4) Propuesta económica 5) Garantías y cumplimiento de bases 6) Checklist de anexos. No inventes certificaciones; marca [COMPLETAR] lo que falte.`}
+function propInit(){
+  bindPropBtns();
+  $('#pCopy').onclick=()=>navigator.clipboard.writeText(promptTexto()).then(()=>toast('Prompt copiado: pégalo en Claude'));
+  $('#pGen').onclick=async()=>{const b=$('#pGen');b.disabled=true;$('#pOut').innerHTML='<span class="spin"></span> Redactando… (puede tardar hasta un minuto)';
+    try{const j=await api('/api/propuesta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({licitacion:{...actual.detalle,CodigoExterno:actual.CodigoExterno,Nombre:actual.Nombre},empresa:empresaObj(),calculo:calcTexto(),instrucciones:$('#pIns').value})});
+      store.set('prop.'+actual.CodigoExterno,j.texto);$('#pOut').innerHTML=`<pre class="prop">${esc(j.texto)}</pre>${propBtns()}`;bindPropBtns()}
+    catch(e){$('#pOut').innerHTML=e.code==='sin_ia'?`<div class="err">La IA no está activada en el servidor (falta ANTHROPIC_API_KEY en Railway). Mientras tanto, usa “Copiar prompt para Claude” y pégalo en claude.ai.</div>`:`<div class="err">${esc(e.message)}</div>`}
+    b.disabled=false};
+}
+
+/* ---------------- órdenes de compra ---------------- */
+let ocs=[];
+$('#bOc').onclick=async()=>{const p=new URLSearchParams();const f=$('#fechaO').value;if(f)p.set('fecha',f);if($('#orgO').value)p.set('organismo',$('#orgO').value.trim());if($('#provO').value)p.set('proveedor',$('#provO').value.trim());
+  $('#msgO').innerHTML='<div class="card" style="margin-top:12px"><span class="spin"></span> Consultando…</div>';
+  try{const j=await api('/api/ordenes?'+p);ocs=j.Listado||[];$('#msgO').innerHTML=`<div class="small muted" style="margin-top:10px">${ocs.length} órdenes. Haz clic en una para ver proveedor y montos.</div>`;pintaOC()}
+  catch(e){$('#msgO').innerHTML=`<div class="err">${esc(e.message)}</div>`}};
+$('#qO').oninput=()=>pintaOC();
+function pintaOC(){const q=sinT($('#qO').value);const r=ocs.filter(o=>!q||sinT(o.Nombre).includes(q)).slice(0,300);
+  $('#ocWrap').classList.toggle('hidden',!r.length);
+  $('#ocTab').innerHTML='<tr><th>Código</th><th>Nombre</th><th>Estado</th><th>Proveedor</th><th class="n">Total</th></tr>'+r.map(o=>`<tr data-oc="${esc(o.Codigo)}" style="cursor:pointer"><td>${esc(o.Codigo)}</td><td>${esc(o.Nombre)}</td><td>${esc(o.Estado||o.CodigoEstado||'')}</td><td>${esc(o.Proveedor?o.Proveedor.Nombre:'…')}</td><td class="n">${o.Total!=null?clp(o.Total):'…'}</td></tr>`).join('');
+  $$('#ocTab tr[data-oc]').forEach(tr=>tr.onclick=async()=>{const c=tr.dataset.oc;tr.style.opacity=.5;try{const j=await api('/api/ordenes?codigo='+encodeURIComponent(c));const d=(j.Listado||[])[0];if(d){Object.assign(ocs.find(o=>o.Codigo===c),d);pintaOC()}}catch(e){toast(e.message)}tr.style.opacity=1})}
+$('#bRut').onclick=async()=>{$('#rutRes').textContent='Buscando…';try{const j=await api('/api/empresa?rut='+encodeURIComponent($('#rutO').value.trim()));const e=(j.listaEmpresas||[])[0];$('#rutRes').innerHTML=e?`<b>${esc(e.NombreEmpresa)}</b> · código <b>${esc(e.CodigoEmpresa)}</b>`:'No encontrado (usa el formato 76.123.456-7)';if(e)$('#provO').value=e.CodigoEmpresa}catch(e){$('#rutRes').textContent=e.message}};
+
+/* ---------------- alertas ---------------- */
+$('#bAlert').onclick=async()=>{const kw=kwPerfil();if(!kw.length){toast('Agrega palabras clave al perfil');return}
+  $('#nav button[data-v=buscar]').click();$('#q').value=kw.join(', ');$('#estado').value='activas';$('#fecha').value='';
+  resultados=await buscar(kw.join(','),'activas','',25,$('#msg'));
+  const vistos=new Set(store.get('vistos.'+pAct,[]));const nuevos=resultados.filter(l=>!vistos.has(l.CodigoExterno));
+  resultados.forEach(l=>l._nueva=!vistos.has(l.CodigoExterno));
+  store.set('vistos.'+pAct,[...new Set([...vistos,...resultados.map(l=>l.CodigoExterno)])].slice(-3000));
+  store.set('ultimaAlerta.'+pAct,Date.now());
+  $('#msg').insertAdjacentHTML('afterbegin',`<div class="card" style="margin-bottom:8px"><b>${nuevos.length} nuevas</b> desde tu última revisión de alertas (${resultados.length} en total para ${esc(pAct)}).</div>`);
+  render(); $$('#lista .lic').forEach(n=>{if(nuevos.some(x=>x.CodigoExterno===n.dataset.c))n.querySelector('.t').insertAdjacentHTML('afterbegin','<span class="pill p-ok" style="margin-right:6px">Nueva</span>')});
+};
+function alertInfo(){const t=store.get('ultimaAlerta.'+pAct,0);$('#alertInfo').textContent=t?' Última revisión: '+new Date(t).toLocaleString('es-CL'):''}
+
+/* ---------------- inicio ---------------- */
+async function ping(){try{const j=await api('/api/status');$('#dot').style.background=j.ticket_configurado?'var(--ok)':'var(--warn)';$('#stxt').textContent=j.ticket_configurado?(j.ia_configurada?'Conectado · IA activa':'Conectado · IA sin activar'):'Falta MP_TICKET en Railway'}
+  catch(e){$('#dot').style.background='var(--bad)';$('#stxt').textContent='Sin conexión al servidor'}}
+pintarPerfil();nGuard();alertInfo();ping();
+</script>
+</body>
+</html>

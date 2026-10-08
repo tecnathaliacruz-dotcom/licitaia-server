@@ -1,82 +1,59 @@
-# LicitaIA — Servidor ChileCompra
+# LicitaIA v2 — App + Servidor ChileCompra
 ### People on Technology | LED VIP | Lizeth Cruz Barrera
 
----
+El servidor (Render, plan gratis; también funciona en Railway) ahora entrega **la app completa** (abre tu URL de Railway en el navegador)
+y hace de intermediario con la API oficial de Mercado Público.
 
-## ¿Qué hace este servidor?
-Actúa como intermediario entre tu app (navegador) y la API oficial de ChileCompra.
-El navegador no puede llamar directamente a ChileCompra por restricciones de seguridad (CORS),
-pero este servidor sí puede hacerlo y te devuelve los datos.
+## Qué trae la app
+- **Buscar**: licitaciones activas/publicadas/cerradas/adjudicadas por palabras clave, con puntaje de oportunidad (0–100), semáforo de cierre, filtros por región, puntaje y orden, y exportación a CSV (abre directo en Excel).
+- **Desiertas**: licitaciones sin oferentes, que suelen volver a publicarse o pasar a trato directo.
+- **Detalle**: organismo, montos, fechas, contacto, ítems, desglose del puntaje.
+- **Calculadora de margen**: costos por ítem + flete + otros + garantía + margen → precio neto, IVA, total, y comparación con el monto estimado.
+- **Propuesta con IA** (si configuras la clave de Anthropic) o **"Copiar prompt para Claude"**; descarga en .doc.
+- **Guardadas**: marca con ★, seguimiento por estado (Evaluando → Oferta enviada → Ganada…) y notas.
+- **Órdenes de compra**: qué compran los organismos, a quién y a qué precio; búsqueda de proveedor por RUT.
+- **Perfiles** (LED VIP y People on Technology ya creados) y **alertas** de licitaciones nuevas.
 
----
+## Hosting en Render (gratis)
+Render lee `render.yaml`: New → Blueprint → elegir este repositorio → pegar `MP_TICKET` cuando lo pida.
+En el plan gratis la app se duerme tras 15 min sin uso y tarda ~50 s en despertar.
 
-## PASO A PASO — Subir a Railway (GRATIS)
+## Cómo actualizar en Railway (alternativa pagada)
 
-### 1. Crear cuenta en GitHub
-- Ve a https://github.com y crea una cuenta gratuita
+### 1. Variables en Railway (ANTES de subir los archivos)
+Railway → tu proyecto → servicio *licitaia-server* → **Variables** → New Variable:
+| Variable | Valor | ¿Obligatoria? |
+|---|---|---|
+| `MP_TICKET` | tu ticket de la API de Mercado Público | Sí |
+| `ANTHROPIC_API_KEY` | clave de console.anthropic.com | Opcional (para redactar propuestas con IA) |
 
-### 2. Crear repositorio
-- Clic en "New repository"
-- Nombre: `licitaia-server`
-- Público o privado (cualquiera sirve)
-- Clic en "Create repository"
+### 2. Subir los archivos a GitHub
+En github.com/tecnathaliacruz-dotcom/licitaia-server → **Add file → Upload files** y arrastra:
+- `server.py`, `requirements.txt`, `Procfile`, `nixpacks.toml`, `README.md`
+- `index.html` (la app)
 
-### 3. Subir los archivos
-Sube estos 4 archivos al repositorio:
-- server.py
-- requirements.txt
-- Procfile
-- nixpacks.toml
+→ **Commit changes**. Railway redespliega solo en 2–3 minutos.
 
-Para subir: clic en "Add file" → "Upload files" → arrastrá los 4 archivos → "Commit changes"
+### 3. Abrir la app
+Entra a tu URL de Railway (Settings → Domains), por ejemplo
+`https://licitaia-server-production.up.railway.app`. Arriba a la derecha debe decir **Conectado**.
 
-### 4. Crear cuenta en Railway
-- Ve a https://railway.app
-- Clic en "Start a New Project"
-- Iniciá sesión con tu cuenta de GitHub
+## Rutas del servidor
+| Ruta | Descripción |
+|---|---|
+| `GET /` | La app |
+| `GET /api/status` | Estado, ticket e IA configurados |
+| `GET /api/buscar?q=coffee,led&estado=activas&fecha=ddmmaaaa&detalle=25` | Búsqueda con filtro y detalle |
+| `GET /api/detalle/<codigo>` | Detalle de una licitación |
+| `GET /api/ordenes?fecha=&organismo=&proveedor=&codigo=` | Órdenes de compra |
+| `GET /api/empresa?rut=76.123.456-7` | Código de proveedor por RUT |
+| `POST /api/propuesta` | Propuesta con IA |
+| `GET /licitaciones/fecha · /codigo · /estado · /organismo · /proveedor` | Rutas originales (siguen funcionando) |
 
-### 5. Desplegar el servidor
-- Clic en "Deploy from GitHub repo"
-- Seleccioná "licitaia-server"
-- Railway detecta automáticamente que es Python y lo instala
-- En 2-3 minutos tenés tu servidor funcionando
+Estados: 5 Publicada · 6 Cerrada · 7 Desierta · 8 Adjudicada · 18 Revocada · 19 Suspendida
+(acepta el número o el texto: `estado=7` o `estado=desierta`).
 
-### 6. Obtener tu URL
-- En Railway, ve a tu proyecto → Settings → Domains
-- Clic en "Generate Domain"
-- Te da una URL tipo: https://licitaia-server-production.up.railway.app
-
-### 7. Actualizar la app
-- Copiá esa URL
-- Dásela a Claude y él actualiza la app para que use tu servidor real
-
----
-
-## Rutas disponibles del servidor
-
-| Ruta | Descripción | Ejemplo |
-|------|-------------|---------|
-| GET / | Estado del servidor | / |
-| GET /licitaciones/fecha | Por fecha publicación | /licitaciones/fecha?fecha=13052026 |
-| GET /licitaciones/codigo | Por código exacto | /licitaciones/codigo?codigo=1509-5-L114 |
-| GET /licitaciones/estado | Por estado | /licitaciones/estado?estado=7 |
-| GET /licitaciones/organismo | Por organismo | /licitaciones/organismo?codigo=694 |
-
----
-
-## Estados de licitaciones
-- 5 = Publicada
-- 6 = Cerrada  
-- 7 = Desierta (sin oferentes) ⚡ — TU MAYOR OPORTUNIDAD
-- 8 = Adjudicada
-
----
-
-## Ticket API
-El ticket ya está incluido en el servidor: 33588502-90E2-4B19-9FCA-0960F65D93CC
-
----
-
-## Costo
-Railway tiene plan gratuito con $5 USD de crédito mensual.
-Este servidor consume muy poco, debería ser gratuito indefinidamente.
+## Notas
+- El ticket ya **no** va en el código: el repositorio es público y cualquiera podía usarlo.
+- El servidor guarda en caché las respuestas (15 min listas, 6 h detalles) y hace las llamadas de a una, porque la API rechaza peticiones simultáneas.
+- Perfiles, guardadas y cálculos se guardan en tu navegador (si cambias de computador, no se traspasan).
