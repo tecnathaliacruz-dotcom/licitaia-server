@@ -254,6 +254,64 @@ def empresa():
     return jsonify(call_api("Empresas/BuscarProveedor", {"rutempresaproveedor": rut}, ttl=24 * 3600))
 
 
+# --------------------------------------------------------- Compra Ágil (API v2)
+CA_BASE = "https://api2.mercadopublico.cl/v2/compra-agil"
+_ca_sem = threading.Semaphore(3)  # hasta 3 consultas a la vez (cada una tarda 5-15 s)
+
+
+def call_ca(path="", params=None, ttl=600):
+    """API Compra Ágil v2: el ticket va en el header 'ticket'; respuesta {success, payload, errors}."""
+    if not TICKET:
+        return None, "Falta la variable MP_TICKET en Render"
+    params = {k: v for k, v in dict(params or {}).items() if v not in (None, "")}
+    key = "CA" + path + "?" + "&".join(f"{k}={params[k]}" for k in sorted(params))
+    hit = cache_get(key)
+    if hit is not None:
+        return hit, None
+    try:
+        with _ca_sem:
+            r = requests.get(CA_BASE + path, params=params, headers={"ticket": TICKET}, timeout=45)
+        data = r.json()
+    except Exception as e:
+        return None, f"No se pudo consultar Compra Ágil: {e}"
+    if not isinstance(data, dict) or data.get("success") != "OK":
+        errs = (data or {}).get("errors") or [] if isinstance(data, dict) else []
+        msg = "; ".join(str(e.get("mensaje") or e.get("codigo")) for e in errs if isinstance(e, dict))
+        if r.status_code in (401, 403):
+            msg = "El ticket no tiene acceso a la API de Compra Ágil. " + msg
+        elif r.status_code == 429:
+            msg = "Se alcanzó el límite de consultas de Compra Ágil por hoy. " + msg
+        return None, msg or f"Error {r.status_code} de la API de Compra Ágil"
+    payload = data.get("payload") or {}
+    cache_set(key, payload, ttl)
+    return payload, None
+
+
+@app.route("/api/compra-agil")
+def compra_agil():
+    """?q=silla&estado=publicada&region=13&pagina=1  (una palabra clave por llamada)"""
+    params = {
+        "q": request.args.get("q", "").strip(),
+        "estado": request.args.get("estado", "publicada").strip() or "publicada",
+        "region": request.args.get("region", "").strip(),
+        "tamano_pagina": 50,
+        "numero_pagina": request.args.get("pagina", "1"),
+        "ordenar_por": "FechaPublicacion",
+    }
+    payload, err = call_ca("", params, ttl=600)
+    if err:
+        return jsonify({"error": err}), 502
+    return jsonify({"items": payload.get("items") or [], "paginacion": payload.get("paginacion") or {}})
+
+
+@app.route("/api/compra-agil/<codigo>")
+def compra_agil_detalle(codigo):
+    payload, err = call_ca("/" + requests.utils.quote(codigo, safe=""), None, ttl=1800)
+    if err:
+        return jsonify({"error": err}), 502
+    return jsonify(payload)
+
+
 @app.route("/api/propuesta", methods=["POST"])
 def propuesta():
     """Redacta una propuesta técnica-económica con Claude (si hay ANTHROPIC_API_KEY)."""

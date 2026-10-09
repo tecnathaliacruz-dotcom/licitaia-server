@@ -91,6 +91,7 @@ pre.prop{white-space:pre-wrap;font:14px/1.55 Inter,system-ui,sans-serif;backgrou
   <div class="logo">Licita<b>IA</b></div>
   <nav id="nav">
     <button data-v="buscar" class="on">Buscar</button>
+    <button data-v="agil">Compra Ágil</button>
     <button data-v="desiertas">Desiertas</button>
     <button data-v="guardadas">Guardadas <span id="nGuard"></span></button>
     <button data-v="ordenes">Órdenes de compra</button>
@@ -127,6 +128,28 @@ pre.prop{white-space:pre-wrap;font:14px/1.55 Inter,system-ui,sans-serif;backgrou
     <div class="kpis" id="kpis"></div>
     <div id="msg"></div>
     <div class="list" id="lista"></div>
+  </section>
+
+  <!-- COMPRA ÁGIL -->
+  <section id="v-agil" class="hidden">
+    <div class="card">
+      <h2>Compra Ágil</h2>
+      <p class="muted" style="margin:0 0 10px">Compras de hasta 100 UTM: rápidas, con menos papeleo y plazos cortos (a veces 1 a 3 días). Se busca palabra por palabra, así que van apareciendo de a poco.</p>
+      <div class="row">
+        <label style="flex:1 1 260px">Palabras clave (separadas por coma)<input id="qA" placeholder="silla, mesa, navidad, juguete"></label>
+        <label>Región<select id="regA"><option value="">Todo Chile</option></select></label>
+        <label>Estado<select id="estA"><option value="publicada">Abiertas (recibiendo cotizaciones)</option><option value="cerrada">Cerradas</option><option value="desierta">Desiertas</option><option value="cancelada">Canceladas</option></select></label>
+        <button class="btn pri" id="bAgil">Buscar</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label>Semáforo<select id="fSemA"><option value="">Todos</option><option value="v">Verde</option><option value="a">Amarillo</option><option value="r">Rojo</option></select></label>
+        <label>Ordenar<select id="fOrdA"><option value="cierre">Cierre más próximo</option><option value="score">Puntaje</option><option value="monto">Mayor monto</option></select></label>
+        <span style="flex:1"></span>
+      </div>
+    </div>
+    <div class="kpis" id="kpisA"></div>
+    <div id="msgA"></div>
+    <div class="list" id="listaA"></div>
   </section>
 
   <!-- DESIERTAS -->
@@ -223,7 +246,7 @@ const sinT=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.append(d);setTimeout(()=>d.remove(),2600)}
 const REGIONES=['Región de Arica y Parinacota','Región de Tarapacá','Región de Antofagasta','Región de Atacama','Región de Coquimbo','Región de Valparaíso','Región Metropolitana de Santiago',"Región del Libertador General Bernardo O'Higgins",'Región del Maule','Región de Ñuble','Región del Biobío','Región de La Araucanía','Región de Los Ríos','Región de Los Lagos','Región Aisén del General Carlos Ibáñez del Campo','Región de Magallanes y de la Antártica'];
 const ESTADO_TXT={5:'Publicada',6:'Cerrada',7:'Desierta',8:'Adjudicada',18:'Revocada',19:'Suspendida'};
-const TIPOS={L1:'Menor a 100 UTM',LE:'100 a 1.000 UTM',LP:'1.000 a 2.000 UTM',LQ:'2.000 a 5.000 UTM',LR:'Mayor a 5.000 UTM',E2:'Menor a 100 UTM (privada)',CO:'100 a 1.000 UTM (privada)',B2:'1.000 a 2.000 UTM (privada)',H2:'2.000 a 5.000 UTM (privada)',I2:'Mayor a 5.000 UTM (privada)',LS:'Servicios personales especializados'};
+const TIPOS={CA:'Compra Ágil (hasta 100 UTM)',L1:'Menor a 100 UTM',LE:'100 a 1.000 UTM',LP:'1.000 a 2.000 UTM',LQ:'2.000 a 5.000 UTM',LR:'Mayor a 5.000 UTM',E2:'Menor a 100 UTM (privada)',CO:'100 a 1.000 UTM (privada)',B2:'1.000 a 2.000 UTM (privada)',H2:'2.000 a 5.000 UTM (privada)',I2:'Mayor a 5.000 UTM (privada)',LS:'Servicios personales especializados'};
 
 function apiBase(){const u=store.get('api','');if(u)return u.replace(/\/$/,'');return location.protocol.startsWith('http')?location.origin:''}
 async function api(path,opts){
@@ -250,10 +273,11 @@ function pintarPerfil(){
   $('#pNombre').value=p.nombre;$('#pRut').value=p.rut;$('#pRubro').value=p.rubro;$('#pReg').value=p.region;
   $('#pKw').value=p.kw;$('#pExp').value=p.exp;$('#pCon').value=p.con;$('#pMar').value=p.margen;$('#pMax').value=p.max;
   if(!$('#q').value) $('#q').value=p.kw;
+  if($('#qA')&&!$('#qA').value) $('#qA').value=p.kw;
 }
 $('#pReg').innerHTML=REGIONES.map(r=>`<option>${esc(r)}</option>`).join('');
 $('#fReg').innerHTML='<option value="">Todas</option>'+REGIONES.map(r=>`<option>${esc(r)}</option>`).join('');
-$('#pSel').onchange=e=>{pAct=e.target.value;store.set('perfilActivo',pAct);$('#q').value='';pintarPerfil();render()};
+$('#pSel').onchange=e=>{pAct=e.target.value;store.set('perfilActivo',pAct);$('#q').value='';$('#qA').value='';pintarPerfil();render()};
 $('#pNew').onclick=()=>{const n=prompt('Nombre del nuevo perfil');if(!n)return;perfiles[n]={...PERFIL_BASE,nombre:n};pAct=n;store.set('perfiles',perfiles);store.set('perfilActivo',n);pintarPerfil()};
 $('#pSave').onclick=()=>{perfiles[pAct]={nombre:$('#pNombre').value,rut:$('#pRut').value,rubro:$('#pRubro').value,region:$('#pReg').value,kw:$('#pKw').value,exp:$('#pExp').value,con:$('#pCon').value,margen:+$('#pMar').value||0,max:+$('#pMax').value||0};store.set('perfiles',perfiles);toast('Perfil guardado');render()};
 $('#apiUrl').value=store.get('api','');
@@ -278,7 +302,7 @@ function puntaje(l){
   const m=det.MontoEstimado; const max=p.max||50000000;
   f['Monto']=!m?8:m<500000?8:m<=max?20:m<=max*4?12:5;
   const tipo=det.Tipo||(String(l.CodigoExterno||'').split('-').pop().replace(/\d+/g,''));
-  f['Tipo']={L1:15,E2:15,LE:12,CO:12,LP:8,B2:8,LQ:5,H2:5,LR:3,I2:3}[tipo]??8;
+  f['Tipo']={CA:15,L1:15,E2:15,LE:12,CO:12,LP:8,B2:8,LQ:5,H2:5,LR:3,I2:3}[tipo]??8;
   const reg=det.Comprador&&det.Comprador.RegionUnidad;
   f['Región']=!reg?5:sinT(reg).includes(sinT(p.region).replace('region ','').slice(0,10))||sinT(reg)===sinT(p.region)?10:3;
   const total=Math.max(0,Math.min(100,Object.values(f).reduce((a,b)=>a+b,0)));
@@ -349,7 +373,7 @@ $('#bCsv').onclick=()=>{
   const csv='﻿'+[head,...rows].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`licitaia_${new Date().toISOString().slice(0,10)}.csv`;a.click();
 };
-const link=c=>'https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion='+encodeURIComponent(c);
+const link=c=>/COT\d*$/i.test(c)?'https://buscador.mercadopublico.cl/ficha?code='+encodeURIComponent(c):'https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion='+encodeURIComponent(c);
 
 /* ---------------- detalle (drawer) ---------------- */
 let actual=null;
@@ -359,8 +383,8 @@ function cerrar(){$('#ov').classList.add('hidden');actual=null}
 async function abrir(codigo,arr){
   let l=arr.find(x=>x.CodigoExterno===codigo)||(guardadas[codigo]&&guardadas[codigo].lic);
   $('#ov').classList.remove('hidden');
-  if(!l.detalle){$('#drawer').innerHTML='<span class="spin"></span> Cargando detalle…';
-    try{l.detalle=detCache[codigo]||await api('/api/detalle/'+encodeURIComponent(codigo));detCache[codigo]=l.detalle}catch(e){$('#drawer').innerHTML=`<div class="err">${esc(e.message)}</div>`;return}}
+  if(!l.detalle||l.detalle._lite){$('#drawer').innerHTML='<span class="spin"></span> Cargando detalle…';
+    try{l.detalle=detCache[codigo]||(l._ca?caDetalle(await api('/api/compra-agil/'+encodeURIComponent(codigo))):await api('/api/detalle/'+encodeURIComponent(codigo)));detCache[codigo]=l.detalle}catch(e){$('#drawer').innerHTML=`<div class="err">${esc(e.message)}</div>`;return}}
   actual=l; if(guardadas[codigo]){guardadas[codigo].lic=l;store.set('guardadas',guardadas)}
   pintarDrawer('resumen'); render();
 }
@@ -379,7 +403,8 @@ function pintarDrawer(tab){
       <div class="kv"><span>Preguntas hasta</span>${esc((F.FechaFinal||'').replace('T',' ').slice(0,16)||'—')}</div>
       <div class="kv"><span>Adjudicación estimada</span>${esc((F.FechaEstimadaAdjudicacion||F.FechaAdjudicacion||'').slice(0,10)||'—')}</div>
       <div class="kv"><span>Contacto</span>${esc(d.NombreResponsableContrato||'—')} ${d.EmailResponsableContrato?'· '+esc(d.EmailResponsableContrato):''}</div>
-      <div class="kv"><span>Estado</span>${esc(d.Estado||ESTADO_TXT[l.CodigoEstado]||'—')}</div></div>
+      <div class="kv"><span>Estado</span>${esc(d.Estado||ESTADO_TXT[l.CodigoEstado]||'—')}</div>
+      ${d._ca?`<div class="kv"><span>Cotizaciones recibidas</span>${d._ofertas??'—'} ${d._ofertas===0?'<span class="pill p-ok">¡Nadie ha cotizado!</span>':''}</div><div class="kv"><span>Entrega</span>${esc(d._entrega||'—')}</div>`:''}</div>
       <h3>Puntaje ${sc.total}/100</h3>
       ${Object.entries(sc.f).map(([k,v])=>{const mx={Rubro:30,Plazo:25,Monto:20,Tipo:15,'Región':10}[k];return`<div class="row small" style="align-items:center;margin:4px 0"><span style="width:70px">${k}</span><div class="bar" style="flex:1"><i style="width:${v/mx*100}%"></i></div><span style="width:46px;text-align:right">${v}/${mx}</span></div>`}).join('')}
       ${sc.hits.length?`<div class="small muted">Coincide con: ${esc(sc.hits.join(', '))}</div>`:'<div class="small muted">No coincide con las palabras clave del perfil activo.</div>'}
@@ -462,6 +487,60 @@ function propInit(){
     catch(e){$('#pOut').innerHTML=e.code==='sin_ia'?`<div class="err">La IA no está activada en el servidor (falta ANTHROPIC_API_KEY en Railway). Mientras tanto, usa “Copiar prompt para Claude” y pégalo en claude.ai.</div>`:`<div class="err">${esc(e.message)}</div>`}
     b.disabled=false};
 }
+
+/* ---------------- compra ágil ---------------- */
+const REG_CA=REGIONES.map((r,i)=>[i,r]); // códigos API: ver tabla
+const REG_CODIGO={'Región de Tarapacá':1,'Región de Antofagasta':2,'Región de Atacama':3,'Región de Coquimbo':4,'Región de Valparaíso':5,"Región del Libertador General Bernardo O'Higgins":6,'Región del Maule':7,'Región del Biobío':8,'Región de La Araucanía':9,'Región de Los Lagos':10,'Región Aisén del General Carlos Ibáñez del Campo':11,'Región de Magallanes y de la Antártica':12,'Región Metropolitana de Santiago':13,'Región de Los Ríos':14,'Región de Arica y Parinacota':15,'Región de Ñuble':16};
+$('#regA').innerHTML='<option value="">Todo Chile</option>'+REGIONES.map(r=>`<option value="${REG_CODIGO[r]}">${esc(r)}</option>`).join('');
+$('#regA').value=String(REG_CODIGO[perfil().region]||'');
+function regNombre(inst){if(inst.nombre_region)return inst.nombre_region;const e=Object.entries(REG_CODIGO).find(([,v])=>v===inst.region);return e?e[0]:''}
+function caLite(it){const inst=it.institucion||{},m=it.montos||{};
+  return{CodigoExterno:it.codigo,Nombre:it.nombre,FechaCierre:(it.fechas||{}).fecha_cierre,_ca:true,
+    detalle:{_lite:true,_ca:true,Tipo:'CA',MontoEstimado:m.monto_disponible_clp??m.monto_disponible,Estado:(it.estado||{}).glosa,_ofertas:(it.resumen||{}).total_ofertas_recibidas,
+      Comprador:{NombreOrganismo:inst.organismo_comprador,NombreUnidad:inst.unidad_compra,RegionUnidad:regNombre(inst)},Fechas:{FechaCierre:(it.fechas||{}).fecha_cierre,FechaPublicacion:(it.fechas||{}).fecha_publicacion}}}}
+function caDetalle(d){const inst=d.institucion||{},p=d.presupuesto||d.montos||{},f=d.fechas||{},en=d.entrega||{};
+  return{_ca:true,Tipo:'CA',Descripcion:d.descripcion,Estado:(d.estado||{}).glosa,MontoEstimado:p.monto_disponible_clp??p.presupuesto_estimado??p.monto_disponible,Moneda:p.moneda||'CLP',
+    _ofertas:(d.resumen||{}).total_ofertas_recibidas??(d.proveedores_cotizando||[]).length,
+    _entrega:[en.direccion_entrega,en.plazo_entrega_dias!=null?`plazo ${en.plazo_entrega_dias} días`:''].filter(Boolean).join(' · '),
+    Comprador:{NombreOrganismo:inst.organismo_comprador,NombreUnidad:inst.unidad_compra,RegionUnidad:regNombre(inst)},
+    Fechas:{FechaCierre:f.fecha_cierre,FechaPublicacion:f.fecha_publicacion},
+    Items:{Listado:(d.productos_solicitados||[]).map(x=>({NombreProducto:x.nombre,Descripcion:x.descripcion||'',Cantidad:x.cantidad,UnidadMedida:x.unidad_medida||''}))}}}
+function semCA(l){const d=diasCierre(l);if(d==null)return{c:'p-n',t:'Sin fecha',k:''};if(d<0)return{c:'p-bad',t:'Cerrada',k:'r'};
+  const h=d*24, t=h<24?`${Math.max(1,Math.floor(h))} h`:`${Math.floor(d)} día${Math.floor(d)===1?'':'s'}`;
+  return d<1?{c:'p-bad',t,k:'r'}:d<3?{c:'p-warn',t,k:'a'}:{c:'p-ok',t,k:'v'}}
+let agiles=[];
+function renderA(){
+  const sem=$('#fSemA').value, ord=$('#fOrdA').value;
+  let r=agiles.filter(l=>!sem||semCA(l).k===sem);
+  const k={score:l=>-puntaje(l).total,cierre:l=>{const d=diasCierre(l);return d==null||d<0?1e9:d},monto:l=>-((l.detalle&&l.detalle.MontoEstimado)||0)}[ord];
+  r.sort((a,b)=>k(a)-k(b));
+  const sin=r.filter(l=>l.detalle&&l.detalle._ofertas===0).length, monto=r.reduce((a,l)=>a+((l.detalle&&l.detalle.MontoEstimado)||0),0);
+  $('#kpisA').innerHTML=agiles.length?`<div class="kpi"><div class="v">${r.length}</div><div class="l">Compras Ágiles</div></div><div class="kpi"><div class="v">${sin}</div><div class="l">Sin cotizaciones aún</div></div><div class="kpi"><div class="v">${r.filter(l=>semCA(l).k==='v').length}</div><div class="l">Con 3+ días</div></div><div class="kpi"><div class="v">${clp(monto)}</div><div class="l">Monto disponible</div></div>`:'';
+  $('#listaA').innerHTML=r.map(l=>{let h=itemHTML(l);const s=semCA(l),s0=semaforo(l);h=h.replace(`<span class="pill ${s0.c}">● ${esc(s0.t)}</span>`,`<span class="pill ${s.c}">● ${esc(s.t)}</span>`);
+    const o=l.detalle&&l.detalle._ofertas;return h.replace('<div class="right">',`<div class="right">${o===0?'<span class="pill p-ok">0 cotizaciones</span>':o?`<span class="small muted">${o} cotizaci${o===1?'ón':'ones'}</span>`:''}`)}).join('');
+  bindLista($('#listaA'),agiles);
+}
+['#fSemA','#fOrdA'].forEach(s=>$(s).oninput=renderA);
+$('#bAgil').onclick=async()=>{
+  const b=$('#bAgil');b.disabled=true;agiles=[];renderA();
+  const kws=$('#qA').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const est=$('#estA').value, reg=$('#regA').value;
+  const lista=kws.length?kws:[''];
+  if(!kws.length&&!reg){$('#msgA').innerHTML='<div class="err">Escribe al menos una palabra o elige una región.</div>';b.disabled=false;return}
+  const vistos=new Map(), errores=[]; let hechas=0;
+  const pinta=()=>{$('#msgA').innerHTML=`<div class="card" style="margin-top:12px">${hechas<lista.length?'<span class="spin"></span> ':''}Palabras revisadas: ${hechas} de ${lista.length} · ${vistos.size} compras encontradas${errores.length?`<div class="err">${esc(errores[0])}</div>`:''}</div>`};
+  pinta();
+  const cola=[...lista]; const kwN=kwPerfil().map(sinT);
+  async function worker(){while(cola.length){const q=cola.shift();
+    try{const p=new URLSearchParams({estado:est});if(q)p.set('q',q);if(reg)p.set('region',reg);
+      const j=await api('/api/compra-agil?'+p);
+      (j.items||[]).forEach(it=>{if(!vistos.has(it.codigo)){const l=caLite(it);vistos.set(it.codigo,l)}});
+    }catch(e){errores.push(`"${q}": ${e.message}`)}
+    hechas++;agiles=[...vistos.values()];pinta();renderA()}}
+  await Promise.all([worker(),worker(),worker()]);
+  if(!vistos.size&&!errores.length)$('#msgA').innerHTML='<div class="empty">No hay Compras Ágiles con esas palabras ahora. Prueba otras o cambia la región.</div>';
+  b.disabled=false;
+};
 
 /* ---------------- órdenes de compra ---------------- */
 let ocs=[];
